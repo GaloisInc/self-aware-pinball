@@ -188,10 +188,11 @@ FakesAssemblies/
 
 
 # Idris stuff
-/pinballcontroller/pinballclient
+/remote-control/controller-idr/pinballclient
 *.ibc
 
 # Haskell stuff
-/controller/dist/
 .cabal-sandbox
 cabal.sandbox.config
+/remote-control/controller-hs/dist/
+
