@@ -1,3 +1,5 @@
+#include "UDPServer.h"
+
 UDPServer::UDPServer(uint16_t port) {
    _port = port;
    _socket = -1;

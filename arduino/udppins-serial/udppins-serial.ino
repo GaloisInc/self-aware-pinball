@@ -7,6 +7,7 @@
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 
+#include "UDPServer.h"
 
 // These are the interrupt and control pins
 #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
@@ -19,8 +20,8 @@
 Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ, ADAFRUIT_CC3000_VBAT,
                                          SPI_CLOCK_DIVIDER); // you can change this clock speed
 
-#define WLAN_SSID       "SSID"
-#define WLAN_PASS       "PASS"
+#define WLAN_SSID       "David"
+#define WLAN_PASS       "nyetwork"
 // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
 #define WLAN_SECURITY   WLAN_SEC_WPA2
 
@@ -131,16 +132,13 @@ void loop(void) {
     uint8_t oldstate = 0; 
     if (udpServer.available()) {
 
-      byte buffer[UDP_READ_BUFFER_SIZE];
+      char buffer[UDP_READ_BUFFER_SIZE];
       int n = udpServer.readData(buffer, UDP_READ_BUFFER_SIZE);  // n contains # of bytes read into buffer
 
       if (n >= 2) {
-	byte msg = buffer[0];
-
 	// Message 1: 0xff then byte with new state
-	if (msg == 0xff) {
+	if ((byte) buffer[0] == 0xff) {
 	  byte state = buffer[1];
-	  
           for (int i = 0; i < 4; i++) {
             digitalWrite(6+i, state & (1 << i) ? HIGH : LOW);
           }
@@ -155,8 +153,8 @@ void loop(void) {
 	  lcd.setCursor(0,0);
 	  lcd.print("                ");
 	  lcd.setCursor(0,0);
-	  for (int i = 1; i <= max(max(msg, n), 16); i++) {
-	    lcd.print(msg[i]);
+	  for (int i = 1; i <= min(min(buffer[0], n), 16); i++) {
+	    lcd.print(buffer[i]);
 	  }
 	}
       }
