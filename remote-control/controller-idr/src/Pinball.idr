@@ -21,14 +21,20 @@ msg (MkFlippers f1 f2 f3 f4) =
 
 doMessage : { [ 'Message ::: STATE String, UDP Socket ] } Eff ()
 doMessage = do text <- 'Message :- get
-               send (IPv4Addr 192 168 43 119) 2811 (strCons (prim__intToChar $ cast (length text) ) text)
+               send (IPv4Addr 192 168 43 119) 2811
+                    (strCons (prim__intToChar $ cast (length text) ) text)
                return ()
 
 doFlippers : { [ 'Flippers ::: STATE Flippers, UDP Socket ] } Eff ()
 doFlippers = do send (IPv4Addr 192 168 43 119) 2811 (msg !('Flippers :- get))
                 return ()
 
-keys : Maybe Event -> { [ SDL_ON, 'Flippers ::: STATE Flippers, 'Message ::: STATE String, UDP Socket ] } Eff Bool
+keys : Maybe Event ->
+       { [ SDL_ON
+         , 'Flippers ::: STATE Flippers
+         , 'Message ::: STATE String
+         , UDP Socket
+         ] } Eff Bool
 keys (Just AppQuit) = return False
 keys (Just (KeyDown (KeyAny 'a'))) = do 'Flippers :- update (record { f1 = True })
                                         doFlippers
@@ -74,7 +80,12 @@ draw = with Effects do
          colour True = green
          colour False = white
 
-main' : { [ SDL (), 'Flippers ::: STATE Flippers, 'Message ::: STATE String, STDIO, UDP () ] } Eff ()
+main' : { [ SDL ()
+          , 'Flippers ::: STATE Flippers
+          , 'Message ::: STATE String
+          , STDIO
+          , UDP ()
+          ] } Eff ()
 main' = do putStrLn "Starting"
            case !mksocket of
              Left err => putStrLn "No connect"
@@ -84,7 +95,12 @@ main' = do putStrLn "Starting"
                             close
 
   where
-    loop : { [ SDL_ON, 'Flippers ::: STATE Flippers, 'Message ::: STATE String, STDIO, UDP Socket ] } Eff ()
+    loop : { [ SDL_ON
+             , 'Flippers ::: STATE Flippers
+             , 'Message ::: STATE String
+             , STDIO
+             , UDP Socket
+             ] } Eff ()
     loop = do draw
               flip
               flippers <- 'Flippers :- get
@@ -92,4 +108,9 @@ main' = do putStrLn "Starting"
 
 namespace Main
   main : IO ()
-  main = runInit [(), 'Flippers := MkFlippers False False False False, 'Message := "startup", (), ()] main'
+  main = runInit [ ()
+                 , 'Flippers := MkFlippers False False False False
+                 , 'Message := "startup"
+                 , ()
+                 , ()
+                 ] main'
