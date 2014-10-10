@@ -1,8 +1,25 @@
 #include "UDPServer.h"
 
+// hardcoded destination address
+#define DEST_IP 0x782BA8C0  // 192.168.43.120
+
+// the destination address and port for our outgoing packets
+sockaddr destAddress;
+socklen_t destAddressLen;
+
 UDPServer::UDPServer(uint16_t port) {
    _port = port;
    _socket = -1;
+   
+   memset(&destAddress, 0x00, sizeof(destAddress));
+   destAddress.sa_family = AF_INET;
+   destAddress.sa_data[0] = (port & 0xFF00) >> 8;  // Set the Port Number
+   destAddress.sa_data[1] = (port & 0x00FF);
+   destAddress.sa_data[2] = DEST_IP >> 24;
+   destAddress.sa_data[3] = DEST_IP >> 16;
+   destAddress.sa_data[4] = DEST_IP >> 8;
+   destAddress.sa_data[5] = DEST_IP;
+   destAddressLen = sizeof(destAddress);
 }
 
 bool UDPServer::begin() {
@@ -16,6 +33,7 @@ bool UDPServer::begin() {
 	 return false;
       }
 
+    
       sockaddr_in address;
       memset(&address, 0, sizeof(address));
       address.sin_family = AF_INET;
@@ -71,3 +89,9 @@ int UDPServer::readData(char *buffer, int bufferSize) {
 
    return -1;
 }
+
+int UDPServer::sendData(char *buf, int len)
+{
+    return sendto(_socket, buf, len, 0, (sockaddr*)&destAddress, destAddressLen);
+}
+
