@@ -1,0 +1,9 @@
+package pinballcontroller
+
+
+opts = "-p sdl -p effects"
+sourcedir = src
+modules = Pinball
+
+executable = pinballclient
+main = Pinball
