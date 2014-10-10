@@ -7,13 +7,6 @@
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 
-//BEGIN UDPServer.h
-
-//END UDPServer.h
-
-//BEGIN UDPServer.cpp
-
-// END UDPSERVER.CPP
 
 // These are the interrupt and control pins
 #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
