@@ -1,5 +1,6 @@
 #include "UDPServer.h"
 
+<<<<<<< HEAD
 // hardcoded destination address
 #define DEST_IP 0x782BA8C0  // 192.168.43.120
 
@@ -7,6 +8,8 @@
 sockaddr destAddress;
 socklen_t destAddressLen;
 
+=======
+>>>>>>> d76048ccfef0a008abba96ebc5812f26186a28b9
 UDPServer::UDPServer(uint16_t port) {
    _port = port;
    _socket = -1;

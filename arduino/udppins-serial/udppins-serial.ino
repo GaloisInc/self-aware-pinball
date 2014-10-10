@@ -20,8 +20,8 @@
 Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ, ADAFRUIT_CC3000_VBAT,
                                          SPI_CLOCK_DIVIDER); // you can change this clock speed
 
-#define WLAN_SSID       "SSID"
-#define WLAN_PASS       "PASS"
+#define WLAN_SSID       "David"
+#define WLAN_PASS       "nyetwork"
 // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
 #define WLAN_SECURITY   WLAN_SEC_WPA2
 
@@ -138,6 +138,7 @@ void setup(void) {
   
 }
 
+
 void loop(void) {
     uint8_t oldstate = 0; 
     if (udpServer.available()) {
@@ -145,6 +146,7 @@ void loop(void) {
       char buffer[UDP_READ_BUFFER_SIZE];
       int n = udpServer.readData(buffer, UDP_READ_BUFFER_SIZE);  // n contains # of bytes read into buffer
 
+<<<<<<< HEAD
       if (n >= 1) {
         uint8_t state = buffer[0];
         for (int i = 0; i < 4; i++) {
@@ -153,8 +155,30 @@ void loop(void) {
         if (oldstate != state) {
           lcd.setBacklight(WHITE);
           lcd.setBacklight(GREEN);
+=======
+      if (n >= 2) {
+	// Message 1: 0xff then byte with new state
+	if ((byte) buffer[0] == 0xff) {
+	  byte state = buffer[1];
+          for (int i = 0; i < 4; i++) {
+            digitalWrite(6+i, state & (1 << i) ? HIGH : LOW);
+          }
+          if (oldstate != state) {
+            lcd.setBacklight(WHITE);
+            lcd.setBacklight(GREEN);
+          }
+          oldstate = state;
+>>>>>>> d76048ccfef0a008abba96ebc5812f26186a28b9
         }
-        oldstate = state;
+	// Message 2: length then that many bytes with new lcd text
+	else {
+	  lcd.setCursor(0,0);
+	  lcd.print("                ");
+	  lcd.setCursor(0,0);
+	  for (int i = 1; i <= min(min(buffer[0], n), 16); i++) {
+	    lcd.print(buffer[i]);
+	  }
+	}
       }
    }
 }
