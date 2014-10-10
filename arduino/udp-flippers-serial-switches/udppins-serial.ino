@@ -126,23 +126,39 @@ void setup(void) {
   
 }
 
+
 void loop(void) {
     uint8_t oldstate = 0; 
     if (udpServer.available()) {
 
-      char buffer[UDP_READ_BUFFER_SIZE];
+      byte buffer[UDP_READ_BUFFER_SIZE];
       int n = udpServer.readData(buffer, UDP_READ_BUFFER_SIZE);  // n contains # of bytes read into buffer
 
-      if (n >= 1) {
-        uint8_t state = buffer[0];
-        for (int i = 0; i < 4; i++) {
-          digitalWrite(6+i, state & (1 << i) ? HIGH : LOW);
+      if (n >= 2) {
+	byte msg = buffer[0];
+
+	// Message 1: 0xff then byte with new state
+	if (msg == 0xff) {
+	  byte state = buffer[1];
+	  
+          for (int i = 0; i < 4; i++) {
+            digitalWrite(6+i, state & (1 << i) ? HIGH : LOW);
+          }
+          if (oldstate != state) {
+            lcd.setBacklight(WHITE);
+            lcd.setBacklight(GREEN);
+          }
+          oldstate = state;
         }
-        if (oldstate != state) {
-          lcd.setBacklight(WHITE);
-          lcd.setBacklight(GREEN);
-        }
-        oldstate = state;
+	// Message 2: length then that many bytes with new lcd text
+	else {
+	  lcd.setCursor(0,0);
+	  lcd.print("                ");
+	  lcd.setCursor(0,0);
+	  for (int i = 1; i <= max(max(msg, n), 16); i++) {
+	    lcd.print(msg[i]);
+	  }
+	}
       }
    }
 }
