@@ -1,0 +1,21 @@
+Name:                pinball-controller
+Version:             0.1
+Synopsis:            Project Synopsis Here
+Description:         Project Description Here
+License:             AllRightsReserved
+Author:              Author
+Maintainer:          maintainer@example.com
+Stability:           Experimental
+Category:            Play
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Executable pinball
+  hs-source-dirs: src
+  main-is: Main.hs
+
+  Build-depends:
+    base                      >= 4     && < 5,
+    gloss                     >= 1.8.2.2 && < 1.9,
+    network                   >= 2.6 && < 2.7,
+    bytestring
