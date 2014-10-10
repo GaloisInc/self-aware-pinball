@@ -7,6 +7,7 @@
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 
+#include "UDPServer.h"
 
 // These are the interrupt and control pins
 #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
@@ -42,6 +43,15 @@ Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ
                                      // an incoming request to finish.  Don't set this
                                      // too high or your server could be slow to respond.
 
+#define NUM_FLIPPERS          4      // the number of flippers in the machine
+#define FIRST_FLIPPER_PIN     6      // the first flipper pin; it is assumed that the
+                                     // remaining ones are consecutive
+
+#define NUM_ROWS              8      // the number of rows in the switch matrix
+#define NUM_COLS              8      // the number of columns in the switch matrix
+
+#define LCD_DEBUG             0      // print debug information to LCD
+
 uint8_t buffer[BUFFER_SIZE+1];
 int bufindex = 0;
 char action[MAX_ACTION+1];
@@ -64,8 +74,10 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define WHITE 0x7
 
 void setup(void) {
-  for (int pin = 6; pin < 10; pin++)  pinMode(pin, OUTPUT);
-
+  for (int pin = 0; pin < NUM_FLIPPERS; pin++) {
+    pinMode(FIRST_FLIPPER_PIN + pin, OUTPUT);
+  }
+  
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
   lcd.setBacklight(RED);
@@ -136,7 +148,7 @@ void loop(void) {
       if (n >= 1) {
         uint8_t state = buffer[0];
         for (int i = 0; i < 4; i++) {
-          digitalWrite(6+i, state & (1 << i) ? HIGH : LOW);
+          digitalWrite(FIRST_FLIPPER_PIN + i, state & (1 << i) ? HIGH : LOW);
         }
         if (oldstate != state) {
           lcd.setBacklight(WHITE);
@@ -157,28 +169,30 @@ void serialEvent() {
     
     if (inB == MSG_HEADER) {
       lcd.setBacklight(YELLOW);
-      byte matrix[8];
-      for (int i = 0; Serial.available() && i < 8; i++) {
-        matrix[i] = Serial.read();
+      byte matrix[NUM_ROWS];
+      int r = 0;
+      while (Serial.available() && r < NUM_ROWS) {
+        matrix[r++] = Serial.read();
       }
-      lcd.setCursor(0,0);
-      for (int i = 0; i < 1; i++) {
-        for (int j=1; j <= 0xff; j = j<<1) {
-          lcd.print(matrix[i] & j ? '1' : '0');
+      if (r < NUM_ROWS) {
+        // we got an incomplete switch matrix
+        lcd.setBacklight(RED);
+        return;
+      }
+      if (LCD_DEBUG) {
+        lcd.setCursor(0,0);
+        for (int i = 0; i < 1; i++) {
+          for (int j=1; j <= 0xff; j = j<<1) {
+            lcd.print(matrix[i] & j ? '1' : '0');
+          }
+          lcd.print("  ");
+          lcd.print(matrix[i]);
         }
-        lcd.print("  ");
-        lcd.print(matrix[i]);
       }
-      if (1 & matrix[0]) {
-        delay(575  );
-        digitalWrite(9, HIGH);
-        delay(600);
-        digitalWrite(9, LOW);
-      }
-      delay(500);
+      
+      udpServer.sendData((char *) matrix, NUM_ROWS * sizeof(byte));
       lcd.setBacklight(GREEN);
     }
-    Serial.flush();
   }
 }
 
