@@ -18,7 +18,6 @@ public:
    bool begin();
    bool available();
    int readData(char *buffer, int bufferSize);
-   int sendData(char *buffer, int bufferSize);
 };
 
 #endif  // UDPSERVER_H

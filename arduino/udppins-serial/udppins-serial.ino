@@ -52,6 +52,9 @@ Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ
 
 #define LCD_DEBUG             0      // print debug information to LCD
 
+#define DEST_IP 192,168,43,255 // broadcast
+#define DEST_PORT 2811
+
 uint8_t buffer[BUFFER_SIZE+1];
 int bufindex = 0;
 char action[MAX_ACTION+1];
@@ -61,8 +64,8 @@ char path[MAX_PATH+1];
 #define UDP_READ_BUFFER_SIZE 20
 #define LISTEN_PORT_UDP 2811
 UDPServer udpServer(LISTEN_PORT_UDP);
-
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
+Adafruit_CC3000_Client udpClient;
 
 // These #defines make it easy to set the backlight color
 #define RED 0x1
@@ -136,10 +139,18 @@ void setup(void) {
     Serial.println(F("No UDP server!"));
   }
   
+  udpClient = cc3000.connectUDP(cc3000.IP2U32(DEST_IP), DEST_PORT);
+  if (!udpClient) {
+    Serial.println(F("No UDP client!"));
+    lcd.setBacklight(TEAL);
+    delay(5000);
+  }
 }
 
-
 void loop(void) {
+    if (udpClient) {
+      udpClient.write("hello!", 6);
+    }
     uint8_t oldstate = 0; 
     if (udpServer.available()) {
 
@@ -202,8 +213,7 @@ void serialEvent() {
           lcd.print(matrix[i]);
         }
       }
-      
-      udpServer.sendData((char *) matrix, NUM_ROWS * sizeof(byte));
+      udpClient.write(matrix, NUM_ROWS);
       lcd.setBacklight(GREEN);
     }
   }
