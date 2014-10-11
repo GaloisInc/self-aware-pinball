@@ -7,9 +7,11 @@ import Effect.State
 import Effect.StdIO
 import Effect.Socket
 
+||| The flipper state tracks the position of four flippers
 record Flippers : Type where
   MkFlippers : (f1, f2, f3, f4 : Bool) -> Flippers
 
+||| Convert a flipper record into the network representation
 msg : Flippers -> String
 msg (MkFlippers f1 f2 f3 f4) =
   strCons (prim__intToChar 0xff) .
@@ -19,16 +21,20 @@ msg (MkFlippers f1 f2 f3 f4) =
    ((if f3 then 0x4 else 0) `prim__orB8`
     ((if f4 then 0x8 else 0) `prim__orB8` 0x10)))
 
+
+||| Send the current LCD message over the network, prefixed with length
 doMessage : { [ 'Message ::: STATE String, UDP Socket ] } Eff ()
 doMessage = do text <- 'Message :- get
                send (IPv4Addr 192 168 43 119) 2811
                     (strCons (prim__intToChar $ cast (length text) ) text)
                return ()
 
+||| Send the current flipper state over the network, prefixed with 0xff
 doFlippers : { [ 'Flippers ::: STATE Flippers, UDP Socket ] } Eff ()
 doFlippers = do send (IPv4Addr 192 168 43 119) 2811 (msg !('Flippers :- get))
                 return ()
 
+||| Handle a keypress, updating internal state and sending messages
 keys : Maybe Event ->
        { [ SDL_ON
          , 'Flippers ::: STATE Flippers
@@ -69,6 +75,7 @@ keys (Just (KeyUp KeySpace)) = do 'Message :- put "Space up"
 keys _ = return True
 
 
+||| Draw key indicators for the pressed flipper buttons
 draw : { [ SDL_ON, 'Flippers ::: STATE Flippers ] } Eff ()
 draw = with Effects do
          MkFlippers a b c d <- 'Flippers :- get
@@ -80,6 +87,7 @@ draw = with Effects do
          colour True = green
          colour False = white
 
+||| The actual main function
 main' : { [ SDL ()
           , 'Flippers ::: STATE Flippers
           , 'Message ::: STATE String
@@ -107,6 +115,7 @@ main' = do putStrLn "Starting"
               when !(keys !poll) loop
 
 namespace Main
+  ||| A stub to run `main'`.
   main : IO ()
   main = runInit [ ()
                  , 'Flippers := MkFlippers False False False False
