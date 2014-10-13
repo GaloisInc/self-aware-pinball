@@ -53,7 +53,7 @@ Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ
 #define LCD_DEBUG             0      // print debug information to LCD
 
 #define DEST_IP 192,168,43,255 // broadcast
-#define DEST_PORT 2811
+#define DEST_PORT 1993
 
 uint8_t buffer[BUFFER_SIZE+1];
 int bufindex = 0;

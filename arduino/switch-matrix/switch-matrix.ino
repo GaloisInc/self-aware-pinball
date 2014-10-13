@@ -35,6 +35,7 @@ int cols[] = { 62, 63, 64, 65, 66, 67, 68, 69 };
 boolean lamp = false;
 boolean state[NUM_COLS][NUM_ROWS] = { false };
 int count[NUM_COLS][NUM_ROWS] = { 0 };
+unsigned long changes = 0;
 
 // setup routine
 void setup() {                
@@ -116,6 +117,7 @@ void loop() {
   }
   
   if (changed) {
+    changes++;
     sendSwitchMatrix();
     if (SERIAL_OUTPUT) {
       printSwitchMatrix();
@@ -182,6 +184,8 @@ void printSwitchMatrix() {
     } 
     Serial.println();
   }
+  Serial.print(changes);
+  Serial.print(" ");
   Serial.println(micros());
   Serial.println();
 }
